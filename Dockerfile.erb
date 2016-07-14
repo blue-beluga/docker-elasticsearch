@@ -1,0 +1,42 @@
+# encoding: UTF-8
+
+FROM <%= ENV.fetch('FROM') %>
+MAINTAINER The Blue Beluga <admin@bluebeluga.io>
+
+LABEL name="elasticsearch"
+LABEL description="Alpine Linux Base with Elasticsearch"
+LABEL version="<%= ENV.fetch('ES_VERSION') %>"
+LABEL git_revision="<%= ENV.fetch('GIT_REVISION') %>"
+
+ENV ES_VERSION <%= ENV.fetch 'ES_VERSION' %>
+ENV ES_SHA256 <%= ENV.fetch 'ES_SHA256' %>
+ENV ES_HOME <%= ENV.fetch('ES_HOME') %>
+ENV ES_USER <%= ENV.fetch 'ES_USER' %>
+ENV ES_GROUP <%= ENV.fetch 'ES_GROUP' %>
+
+RUN apk-install --no-cache curl ca-certificates su-exec && \
+    curl -sSLO "https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-${ES_VERSION}.tar.gz" && \
+    echo "${ES_SHA256}  elasticsearch-${ES_VERSION}.tar.gz" | sha256sum -c - && \
+    tar -xzf "elasticsearch-${ES_VERSION}.tar.gz" -C /usr/share && \
+    rm "elasticsearch-${ES_VERSION}.tar.gz" && \
+    ln -s "/usr/share/elasticsearch-${ES_VERSION}" "${ES_HOME}" && \
+    apk del curl && \
+    rm -rf /var/cache/apk/*
+
+WORKDIR "${ES_HOME}"
+RUN mkdir data logs config/scripts
+
+COPY files/config "${ES_HOME}/config"
+COPY files/entrypoint.sh /
+
+RUN addgroup -S "${ES_GROUP}" && \
+    adduser "${ES_USER}" -D -S -h "${ES_HOME}" -G "${ES_GROUP}" -g 'Elasticsearch User' && \
+    chown -R "${ES_USER}:${ES_GROUP}" "${ES_HOME}"
+
+USER "${ES_USER}"
+ENV PATH "${ES_HOME}/bin:${PATH}"
+VOLUME ["${ES_HOME}/data"]
+
+EXPOSE 9200 9300
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["elasticsearch"]
