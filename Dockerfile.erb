@@ -3,10 +3,11 @@
 FROM <%= ENV.fetch('FROM') %>
 MAINTAINER The Blue Beluga <admin@bluebeluga.io>
 
-LABEL name="elasticsearch"
-LABEL description="Alpine Linux Base with Elasticsearch"
-LABEL version="<%= ENV.fetch('ES_VERSION') %>"
-LABEL git_revision="<%= ENV.fetch('GIT_REVISION') %>"
+LABEL vendor="The Blue Beluga Company"
+LABEL io.bluebeluga.elasticsearch.description="Elasticsearch"
+LABEL io.bluebeluga.elasticsearch.version="<%= ENV.fetch('TAG') %>"
+LABEL io.bluebeluga.elasticsearch.git-revision="<%= ENV.fetch('GIT_REVISION') %>"
+LABEL io.bluebeluga.elasticsearch.release-date="<%= Time.now.strftime('%B %d, %Y %H:%M') %>"
 
 ENV ES_VERSION <%= ENV.fetch 'ES_VERSION' %>
 ENV ES_SHA256 <%= ENV.fetch 'ES_SHA256' %>
